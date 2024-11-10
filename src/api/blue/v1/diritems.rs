@@ -31,8 +31,11 @@ async fn diritems_task(path: Path<(String, String)>) -> Result<V1Response, Box<d
         }
     }
 
-    for item in dir_items(account.id, &base, true, false).await? {
-        if !item.is_file && Map::exists(&base_abs.join(&item.name)).await {
+    for mut item in dir_items(account.id, &base, true, false).await? {
+        if Map::exists(&base_abs.join(&item.name)).await {
+            item.is_file = true;
+            items.push(item);
+        } else if !item.is_file {
             items.push(item);
         }
     }

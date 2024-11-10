@@ -1,5 +1,5 @@
 use actix_web::{web::Data, App, HttpServer};
-use gm_blue::{r#static::r#static, values::BLUE_CONFIG};
+use gm_blue::{pages, r#static::r#static, values::BLUE_CONFIG};
 use goodmorning_services::structs::Jobs;
 
 #[actix_web::main]
@@ -13,6 +13,9 @@ async fn main() {
         App::new()
             .service(r#static)
             .service(gm_blue::api::scope())
+            .service(pages::home)
+            .service(pages::fspath)
+            .service(pages::root)
             .app_data(jobs.clone())
     })
     .bind(("0.0.0.0", BLUE_CONFIG.get().unwrap().port))
