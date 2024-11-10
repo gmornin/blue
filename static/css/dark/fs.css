@@ -1,0 +1,69 @@
+#fslist li:not(:last-child) {
+  border-bottom: 1px solid #333311;
+}
+
+#fslist li {
+  color: #99aabb;
+}
+
+#fslist li:hover {
+  color: #99aaff;
+}
+
+dialog {
+  background-color: #222222;
+  border: rgba(255, 255, 255, 0.2) solid 1px;
+  color: white;
+}
+
+#target,
+#copytarget,
+#movetarget,
+#createtarget {
+  background-color: #181a1b;
+  color: white;
+  border: rgba(255, 255, 255, 0.1) solid 1px;
+  outline: #2266aa;
+}
+
+.submitbut {
+  color: white;
+  background-color: #2266cc;
+}
+
+.submitbut:hover {
+  background-color: #4488ff;
+  cursor: pointer;
+}
+
+.submitbut[disabled="disabled"],
+.submitbut:disabled {
+  background-color: #4488ff;
+}
+
+.dangerbut {
+  background-color: #bb1111;
+  color: white;
+}
+
+.dangerbut:hover,
+.dangerbut:disabled {
+  background-color: #ff0000;
+}
+
+.x:hover {
+  color: #6666ff;
+}
+
+.dropdown-content {
+  background-color: #151522;
+  border: rgba(255, 255, 255, 0.1) solid 1px;
+}
+
+.dropdown-content .dropdown-item:hover {
+  background: #333546;
+}
+
+.dropdown-item {
+  color: white;
+}

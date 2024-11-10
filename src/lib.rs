@@ -1,4 +1,5 @@
-mod api;
-mod config;
-mod pages;
-mod values;
+pub mod api;
+pub mod pages;
+pub mod r#static;
+pub mod structs;
+pub mod values;

@@ -1,0 +1,52 @@
+body {
+  background-color: #101116;
+}
+
+body,
+a {
+  color: white;
+}
+
+.buttonlike-hover:hover {
+  background-color: #222222;
+}
+
+.hover-dropshadow:hover {
+  box-shadow: 0px 5px 12px -3px #232526;
+}
+
+.linklike,
+#display a {
+  color: #58a6ff;
+}
+
+.ghbutton {
+  color: white;
+  background-color: #383686;
+}
+
+.ghbutton:hover {
+  background-color: #484696;
+}
+
+.ghbutton[disabled="disabled"],
+.ghbutton:disabled {
+  background-color: #484696;
+}
+
+input,
+textarea {
+  background-color: #101116;
+  color: white;
+  border: rgba(255, 255, 255, 0.1) solid 1px;
+  outline: #2266aa;
+}
+
+input:focus,
+textarea:focus {
+  outline: 1px solid #2266aa;
+}
+
+#backdrop {
+  background-color: rgba(0, 0, 0, 0.5);
+}

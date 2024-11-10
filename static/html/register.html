@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="/static/css/main.css" />
+    <link rel="stylesheet" href="/static/css/login.css" />
+    <link rel="stylesheet" href="/static/css/dark/main.css" />
+    <link rel="stylesheet" href="/static/css/dark/login.css" />
+    <link
+      rel="shortcut icon"
+      href="/static/images/logo.webp"
+      type="image/x-icon"
+    />
+    <script src="/static/scripts/login.js" defer></script>
+    <title>Create account - GM Blue</title>
+  </head>
+  <body>
+    <center>
+      <a href="/">
+        <img src="/static/images/logo.webp" alt="" width="80" id="icon" />
+      </a>
+      <br />
+      <br />
+      <h1 id="title">GoodMorning, BlueMap</h1>
+    </center>
+    <div id="login-form" class="container">
+      <div class="signin hide">
+        <label for="identifier">Username or email address</label>
+        <input type="text" name="identifier" id="identifier" />
+        <label for="password">Password</label>
+        <a href="" id="forgot" class="linklike">Forgot password?</a>
+        <input type="password" name="password" id="password" />
+        <button id="submit-signin" class="submit" onclick="signin()">
+          Sign in
+        </button>
+      </div>
+      <div class="signup">
+        <label for="email">Email address</label>
+        <input type="text" name="email" id="email" />
+        <label for="username">Username</label>
+        <input type="text" name="username" id="username" />
+        <label for="password1">Password</label>
+        <input type="password" name="password1" id="password1" />
+        <label for="password2">Confirm password</label>
+        <input type="password" name="password2" id="password2" />
+        <button id="submit-create" class="submit" onclick="signup()">
+          Create account
+        </button>
+      </div>
+      <p id="error-display"></p>
+    </div>
+    <div class="container">
+      <center class="signin hide">
+        New here?
+        <button
+          id="noaccount"
+          class="linklike"
+          onclick="
+	  changeState('signup')"
+        >
+          Create an account
+        </button>
+      </center>
+      <center class="signup">
+        Already have an account?
+        <button
+          id="hasaccount"
+          class="linklike"
+          onclick="changeState('signin')"
+        >
+          Sign in instead
+        </button>
+      </center>
+    </div>
+  </body>
+</html>

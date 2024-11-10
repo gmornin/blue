@@ -4,7 +4,10 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-goodmorning-services = { git = "https://github.com/gmornin/services", rev = "855f0e7", features = ["blue", "tex"] }
+# goodmorning-services = { path = "../services/", version = "*", features = [ "blue" ]}
+goodmorning-services = { git = "https://github.com/gmornin/services", rev = "1a8675f", features = [ "blue" ] }
+# bluemap-singleserve = { git = "https://github.com/Siriusmart/bluemap-singleserve", rev = "0cd8713" }
+bluemap-singleserve = { path = "../bluemap-singleserve", version = "*" }
 actix-web = "4.9"
 tokio = { version = "1.41", features = ["fs"] }
 serde = { version = "1.0", features = ["derive"] }
@@ -12,3 +15,5 @@ serde-inline-default = "0.2"
 default-from-serde = "0.1"
 mongodb = "3.1"
 tokio-stream = "0.1"
+actix-files = "0.6"
+async-trait = "0.1"

@@ -20,7 +20,7 @@ async fn create_task(post: Json<V1TokenOnly>) -> Result<V1Response, Box<dyn Erro
     let mut account = Account::v1_get_by_token(&post.token)
         .await?
         .v1_restrict_verified()?
-        .v1_not_contains(&GMServices::Tex)?;
+        .v1_not_contains(&GMServices::Blue)?;
 
     let path = get_usersys_dir(account.id, Some(GMServices::Blue));
     fs::create_dir_all(&path).await?;

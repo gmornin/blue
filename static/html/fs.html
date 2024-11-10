@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="/static/css/main.css" />
+    <link rel="stylesheet" href="/static/css/topbar.css" />
+    <link rel="stylesheet" href="/static/css/topbar-signedout.css" />
+    <link rel="stylesheet" href="/static/css/fs.css" />
+    <link rel="stylesheet" href="/static/css/path.css" />
+    <link rel="stylesheet" href="/static/css/topbar-loggedin.css" />
+    <link rel="stylesheet" href="/static/css/dark/main.css" />
+    <link rel="stylesheet" href="/static/css/dark/topbar.css" />
+    <link rel="stylesheet" href="/static/css/dark/fs.css" />
+    <link rel="stylesheet" href="/static/css/dark/path.css" />
+    <link rel="stylesheet" href="/static/css/dark/topbar-signedout.css" />
+    <link
+      rel="shortcut icon"
+      href="/static/images/favicon-dark.svg"
+      type="image/x-icon"
+    />
+    <script src="/static/scripts/fs.js" defer></script>
+    <script src="/static/scripts/upload.js" defer></script>
+    <title>Usercontent - GM Tex</title>
+  </head>
+  <body>
+    <dialog id="restored">
+      <div class="x">&#x2715;</div>
+      <h2>Head up!</h2>
+      <center><img src="/static/icons/warn.svg" height="50px" /></center>
+      <center><p>There is a file at restore location</p></center>
+      <button id="restorebut" class="dangerbut">Overwrite file</button>
+    </dialog>
+    <dialog id="copyd">
+      <div class="x">&#x2715;</div>
+      <h2>Copy item</h2>
+      <p id="copy-from">Copy from: <span></span></p>
+      <input type="text" id="copytarget" placeholder="Copy target" />
+      <button id="copybut" class="submitbut">Copy</button>
+    </dialog>
+    <dialog id="moved">
+      <div class="x">&#x2715;</div>
+      <h2>Move item</h2>
+      <center><img src="/static/icons/folder-tree.svg" height="50px" /></center>
+      <p id="move-from">Move from: <span></span></p>
+      <input type="text" id="movetarget" placeholder="Move to" />
+      <button id="movebut" class="submitbut">Copy</button>
+    </dialog>
+    <div id="top-bar">
+      <div id="top-bar-left">
+        <a href="/" id="top-bar-icon"
+          ><img src="/static/images/favicon-dark.svg" alt="" width="30"
+        /></a>
+        <a href="/docs" class="top-bar-link">API</a>
+        <a href="" class="top-bar-link">Blog</a>
+      </div>
+      <div id="top-bar-right">
+        <img src="/static/icons/bell.svg" id="notif-bell" alt="" width="15" />
+        <img
+          src="/api/generic/v1/pfp/id/1"
+          id="topbar-pfp"
+          alt=""
+          width="30"
+          height="30"
+        />
+      </div>
+    </div>
+    <div id="path-display">
+      <span class="fragment">1</span>
+      <span class="connect">&gt;</span>
+      <span class="fragment">projects</span>
+      <span class="connect">&gt;</span>
+      <span class="fragment">gmt-server</span>
+      <div id="pathitems">
+        <img
+          src="/static/icons/fileadd.svg"
+          alt=""
+          width="20px"
+          height="20px"
+          id="create"
+        /><img
+          src="/static/icons/upload.svg"
+          alt=""
+          width="20px"
+          height="20px"
+          id="upload"
+        />
+      </div>
+    </div>
+    <!-- <label id="upload"> -->
+    <!--   <input type="file" /> -->
+    <!--   Upload -->
+    <!-- </label> -->
+    <ul id="fslist">
+      <li class="dir">
+        assets/
+        <div class="ellipsis">
+          <div class="dropdown">
+            <img src="/static/icons/ellipsis.svg" class="dots" />
+            <div class="dropdown-content">
+              <span class="dropdown-item">Edit</span>
+              <span class="dropdown-item">Copy</span>
+            </div>
+          </div>
+        </div>
+      </li>
+      <li class="dir">
+        <img src="/static/icons/public.svg" class="icon" />
+        src/
+        <div class="ellipsis">
+          <img src="/static/icons/ellipsis.svg" class="dots" />
+        </div>
+      </li>
+      <li class="dir">
+        static/
+        <div class="ellipsis">
+          <img src="/static/icons/ellipsis.svg" class="dots" />
+        </div>
+      </li>
+      <li class="dir">
+        target/
+        <div class="ellipsis">
+          <img src="/static/icons/ellipsis.svg" class="dots" />
+        </div>
+      </li>
+      <li class="file">
+        Cargo.lock
+        <div class="ellipsis">
+          <img src="/static/icons/ellipsis.svg" class="dots" />
+        </div>
+      </li>
+      <li class="file">
+        Cargo.toml
+        <div class="ellipsis">
+          <img src="/static/icons/ellipsis.svg" class="dots" />
+        </div>
+      </li>
+      <li class="file">
+        <img src="/static/icons/public.svg" class="icon" />
+        LICENSE
+        <div class="ellipsis">
+          <img src="/static/icons/ellipsis.svg" class="dots" />
+        </div>
+      </li>
+      <li class="file">
+        README.md
+        <div class="ellipsis">
+          <img src="/static/icons/ellipsis.svg" class="dots" />
+        </div>
+      </li>
+      <li class="file">
+        dotenv-example
+        <div class="ellipsis">
+          <img src="/static/icons/ellipsis.svg" class="dots" />
+        </div>
+      </li>
+      <li class="hidden-file">
+        .env
+        <div class="ellipsis">
+          <img src="/static/icons/ellipsis.svg" class="dots" />
+        </div>
+      </li>
+    </ul>
+    <div id="backdrop" style="display: none"></div>
+    <script>
+      window.cache = { tex: [{ name: ".system", is_file: false, size: 4096 }] };
+      window.history.replaceState({ path: "1/projects/gmt-server" }, "");
+    </script>
+  </body>
+</html>

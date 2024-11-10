@@ -1,0 +1,37 @@
+#login-form {
+  border: rgba(255, 255, 255, 0.2) solid 1px;
+  background-color: #1a1b24;
+}
+
+#login-form input {
+  background-color: #101116;
+  color: white;
+  border: rgba(100, 200, 255, 0.1) solid 1px;
+  outline: #2266aa;
+}
+
+#login-form input:focus {
+  outline: 1px solid #2266aa;
+}
+
+#forgot,
+#noaccount,
+#hasaccount {
+  background-color: transparent;
+  border: none;
+}
+
+.submit {
+  color: white;
+  background-color: #383686;
+}
+
+.submit:hover {
+  background-color: #484696;
+  cursor: pointer;
+}
+
+.submit[disabled="disabled"],
+.submit:disabled {
+  background-color: #484696;
+}
