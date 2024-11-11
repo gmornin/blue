@@ -88,7 +88,7 @@ function go(path, skipCheck, dontpush) {
 
     if (cache[path]) {
         if (!dontpush)
-            window.history.pushState({ path: path }, "", `/fs/${path}`);
+            window.history.pushState({ path: path }, "", `/fs/${path.split('/').slice(1).join('/')}`);
         display(path, cache[path]);
         conditionallyAddDots();
         return;
@@ -98,7 +98,7 @@ function go(path, skipCheck, dontpush) {
 
     if (id === localStorage.getItem("userid") && token) {
         fetch(
-            `/api/blue/v1/diritems/${token}/tex/${path
+            `/api/blue/v1/diritems/${token}/blue/${path
                 .split("/")
                 .slice(1)
                 .join("/")}`,
@@ -116,7 +116,7 @@ function go(path, skipCheck, dontpush) {
                     return;
                 }
                 if (!dontpush)
-                    window.history.pushState({ path: path }, "", `/fs/${path}`);
+                    window.history.pushState({ path: path }, "", `/fs/${path.split('/').slice(1).join('/')}`);
                 cache[path] = data.content;
                 display(path, data.content);
                 conditionallyAddDots();
@@ -124,7 +124,7 @@ function go(path, skipCheck, dontpush) {
             .catch((error) => console.error(error));
     } else {
         fetch(
-            `/api/usercontent/v1/diritems/id/${id}/tex/${path
+            `/api/usercontent/v1/diritems/id/${id}/blue/${path
                 .split("/")
                 .slice(1)
                 .join("/")}`,
@@ -142,7 +142,7 @@ function go(path, skipCheck, dontpush) {
                     return;
                 }
                 if (!dontpush)
-                    window.history.pushState({ path: path }, "", `/fs/${path}`);
+                    window.history.pushState({ path: path }, "", `/fs/${path.split('/').slice(1).join('/')}`);
                 cache[path] = data.content;
                 display(path, data.content);
                 conditionallyAddDots();
@@ -268,7 +268,7 @@ function addListeners() {
                     event.target.classList.contains("dropdown-item")
                 )
                     return;
-                window.location.pathname = `/fs/${fragment.getAttribute("path")}`;
+                window.location.pathname = `/fs/${fragment.getAttribute("path").split('/').slice(1).join('/')}`;
             });
         } else {
             fragment.addEventListener("click", (event) => {
@@ -291,14 +291,14 @@ function trashTask(path) {
     let body = {
         token: getToken(),
         // "from-userid": localStorage.getItem("userid"),
-        from: `/tex/${trashPath}`,
-        to: `/tex/.system/trash/${trashPath}`,
+        from: `/blue/${trashPath}`,
+        to: `/blue/.system/trash/${trashPath}`,
     };
 
     let splitted = trashPath.split("/");
 
     if (splitted[0] === "Shared") {
-        body.to = `/tex/Shared/${splitted[1]}/.system/trash/${splitted.slice(2).join("/")}`;
+        body.to = `/blue/Shared/${splitted[1]}/.system/trash/${splitted.slice(2).join("/")}`;
     }
 
     let url = "/api/storage/v1/move-createdirs-overwrite";
@@ -348,12 +348,12 @@ function restoreTask(path) {
     let body = {
         token: getToken(),
         // "from-userid": localStorage.getItem("userid"),
-        from: `/tex/${trashPath}`,
-        to: `/tex/${splitted.slice(2)}`,
+        from: `/blue/${trashPath}`,
+        to: `/blue/${splitted.slice(2)}`,
     };
 
     if (splitted[0] === "Shared") {
-        body.to = `/tex/Shared/${splitted[1]}/${splitted.slice(4).join("/")}`;
+        body.to = `/blue/Shared/${splitted[1]}/${splitted.slice(4).join("/")}`;
     }
 
     let url = "/api/storage/v1/move-createdirs";
@@ -455,8 +455,8 @@ function moveTask() {
     let body = {
         token: getToken(),
         "from-userid": parseInt(from[0]),
-        from: `/tex/${from[1]}`,
-        to: `/tex${move_target.value}`,
+        from: `/blue/${from[1]}`,
+        to: `/blue${move_target.value}`,
     };
 
     let url = "/api/storage/v1/move";
@@ -539,8 +539,8 @@ function copyTask() {
     let body = {
         token: getToken(),
         "from-userid": parseInt(from[0]),
-        from: `/tex/${from[1]}`,
-        to: `/tex${copy_target.value}`,
+        from: `/blue/${from[1]}`,
+        to: `/blue${copy_target.value}`,
     };
 
     let url = "/api/storage/v1/copy";
@@ -587,9 +587,9 @@ function createTask() {
     let path;
 
     if (splitted.length > 1) {
-        path = `/tex/${splitted.slice(1).join("/")}/${create_target.value}`;
+        path = `/blue/${splitted.slice(1).join("/")}/${create_target.value}`;
     } else {
-        path = `/tex/${create_target.value}`;
+        path = `/blue/${create_target.value}`;
     }
     let body = {
         token: getToken(),
@@ -725,9 +725,9 @@ if (fslist) {
                             console.log(id);
                             console.log(path);
                             if (id == localStorage.getItem("userid")) {
-                                url = `/api/storage/v1/file/${getToken()}/tex/${path}`;
+                                url = `/api/storage/v1/file/${getToken()}/blue/${path}`;
                             } else {
-                                url = `/api/usercontent/v1/file/id/${id}/tex/${path}`;
+                                url = `/api/usercontent/v1/file/id/${id}/blue/${path}`;
                             }
                             var link = document.createElement("a");
                             link.download = path.split("/").pop();
@@ -741,7 +741,7 @@ if (fslist) {
                             let delPath = path.split("/").slice(1).join("/");
                             let token = getToken();
                             let body = {
-                                path: `tex/${delPath}`,
+                                path: `blue/${delPath}`,
                                 token,
                             };
 
@@ -781,7 +781,7 @@ if (fslist) {
                                     .join("/");
                             let token = getToken();
                             let body = {
-                                path: `tex/${vispath}`,
+                                path: `blue/${vispath}`,
                                 token,
                                 visibility: action,
                             };
@@ -824,7 +824,7 @@ if (fslist) {
                                     .join("/");
                             let token = getToken();
                             let body = {
-                                path: `tex/${vispath}`,
+                                path: `blue/${vispath}`,
                                 token,
                             };
 

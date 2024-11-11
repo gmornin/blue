@@ -1,66 +1,63 @@
 use std::{borrow::Cow, error::Error, path::PathBuf};
 
 use actix_files::NamedFile;
+use actix_web::http::header::HeaderValue;
+use actix_web::routes;
 use actix_web::{get, http::header::ContentType, web::Path, HttpRequest, HttpResponse};
 use bluemap_singleserve::Map;
 use goodmorning_services::bindings::services::v1::V1Error;
+use goodmorning_services::functions::cookie_to_str;
 use goodmorning_services::{
     functions::{dir_items, get_user_dir},
     structs::{Account, GMServices},
-    traits::CollectionItem,
-    ACCOUNTS,
 };
 use tokio::fs;
 
 use crate::{
     components::{self, topbar_from_req, FsItem, FsItemProp, PathProp},
     functions::{from_res, gen_nonce},
-    values::{BLUE_CONFIG, CSP_BASE},
+    values::BLUE_CONFIG,
 };
 
-#[get("/fs/{id}/{path:.*}")]
-pub async fn fspath(path: Path<(i64, String)>, req: HttpRequest) -> HttpResponse {
+#[get("/fs/{path:.*}")]
+pub async fn fspath(path: Path<String>, req: HttpRequest) -> HttpResponse {
     from_res(fs_task(path, &req).await, &req).await
 }
 
-#[get("/fs/{id}")]
-pub async fn root(path: Path<i64>, req: HttpRequest) -> HttpResponse {
-    from_res(
-        fs_task(Path::from((path.into_inner(), String::new())), &req).await,
-        &req,
-    )
-    .await
+#[routes]
+#[get("/fs")]
+#[get("/fs/")]
+pub async fn root(req: HttpRequest) -> HttpResponse {
+    from_res(fs_task(Path::from(String::new()), &req).await, &req).await
 }
 
-async fn fs_task(
-    path: Path<(i64, String)>,
-    req: &HttpRequest,
-) -> Result<HttpResponse, Box<dyn Error>> {
-    let (id, path) = path.into_inner();
+async fn fs_task(path: Path<String>, req: &HttpRequest) -> Result<HttpResponse, Box<dyn Error>> {
+    let path = path.into_inner();
+
+    let token_cookie = req.cookie("token");
+    let token = cookie_to_str(&token_cookie);
+
+    if token.is_none() {
+        return Ok(NamedFile::open_async(
+            std::path::Path::new(&BLUE_CONFIG.get().unwrap().static_path).join("html/login.html"),
+        )
+        .await
+        .map(|file| file.into_response(req))?);
+    }
 
     let (topbar, account) = match topbar_from_req(req).await? {
         Ok(stuff) => stuff,
         Err(res) => return Ok(res),
     };
 
-    let is_owner = account.as_ref().is_some_and(|account| account.id == id);
-
-    let mut account = if let Some(account) = account
-        && account.id == id
-    {
+    let mut account = if let Some(account) = account {
         account
     } else {
-        match Account::find_by_id(id, ACCOUNTS.get().unwrap()).await? {
-            Some(account) => account,
-            None => {
-                return Ok(NamedFile::open_async(
-                    std::path::Path::new(&BLUE_CONFIG.get().unwrap().static_path)
-                        .join("html/notfound.html"),
-                )
-                .await?
-                .into_response(req))
-            }
-        }
+        return Ok(NamedFile::open_async(
+            std::path::Path::new(&BLUE_CONFIG.get().unwrap().static_path).join("html/login.html"),
+        )
+        .await?
+        .into_response(req));
     };
 
     let mut preview_path = PathBuf::from(&path);
@@ -80,39 +77,137 @@ async fn fs_task(
     }
 
     // get_user_dir(account.id, None).join(&path);
-    let pathbuf = get_user_dir(account.id, Some(GMServices::Tex)).join(&preview_path);
+    let pathbuf = get_user_dir(account.id, Some(GMServices::Blue)).join(&preview_path);
+
+    if !req
+        .headers()
+        .get("accept")
+        .unwrap_or(&HeaderValue::from_str("html").unwrap())
+        .to_str()
+        .unwrap()
+        .contains("html")
+    {
+        let pathbuf = std::path::Path::new("blue").join(&path);
+        let base_abs = get_user_dir(account.id, None);
+
+        for parent in pathbuf.ancestors() {
+            if Map::exists(&base_abs.join(parent)).await {
+                // dbg!(pathbuf.iter().skip(i).collect::<PathBuf>());
+                return Map::serve(
+                    &base_abs.join(parent),
+                    &pathbuf
+                        .iter()
+                        .skip(parent.iter().count())
+                        .collect::<PathBuf>(),
+                    req,
+                )
+                .await;
+            }
+        }
+    }
+
+    if pathbuf.iter().last().map(|s| s.to_str().unwrap()) == Some("map")
+        && Map::exists(
+            &pathbuf
+                .iter()
+                .take(pathbuf.iter().count() - 1)
+                .collect::<PathBuf>(),
+        )
+        .await
+    {
+        return Map::serve(&pathbuf, std::path::Path::new(""), req).await;
+    }
+
+    if Map::exists(&pathbuf).await {
+        return map(account, path, topbar).await;
+    }
 
     if matches!(path.as_str(), "Shared" | "Shared/") {
-        return dir(account, id, path, topbar, is_owner).await;
+        return dir(account, path, topbar).await;
     }
 
     if !fs::try_exists(&pathbuf).await? {
         return Err(V1Error::FileNotFound.into());
     }
+    dir(account, path, topbar).await
+}
 
-    dir(account, id, path, topbar, is_owner).await
+async fn map(
+    account: Account,
+    path: String,
+    topbar: Cow<'_, str>,
+) -> Result<HttpResponse, Box<dyn Error>> {
+    let path_escaped = html_escape::encode_safe(&path).to_string();
+    let map_path_dirty = format!("/fs/{}/map", path.trim_matches('/'));
+    let map_path = html_escape::encode_text(&map_path_dirty);
+
+    let path_display = yew::ServerRenderer::<components::Path>::with_props(move || PathProp {
+        id: account.id,
+        path: path.trim_end_matches('/').to_string(),
+    })
+    .render()
+    .await;
+
+    let id = account.id;
+    let html = format!(
+        r#"
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="/static/css/main.css" />
+    <link rel="stylesheet" href="/static/css/topbar.css" />
+    <link rel="stylesheet" href="/static/css/path.css" />
+    <link rel="stylesheet" href="/static/css/preview.css" />
+    <link rel="stylesheet" href="/static/css/file-previews.css" />
+    <link rel="stylesheet" href="/static/css/topbar-loggedin.css" />
+    <link rel="stylesheet" href="/static/css/dark/main.css" />
+    <link rel="stylesheet" href="/static/css/dark/topbar.css" />
+    <link rel="stylesheet" href="/static/css/dark/path.css" />
+    <link rel="stylesheet" href="/static/css/dark/preview.css" />
+    <link
+      rel="shortcut icon"
+      href="/static/images/logo.webp"
+      type="image/x-icon"
+    />
+    <script src="/static/scripts/file.js" defer></script>
+    <title>{id}/{path_escaped}</title>
+  </head>
+  <body>
+    {topbar}
+<div id="path-display">
+    {path_display}
+</div>
+    <iframe id="viewer" src="{map_path}"></iframe> 
+  </body>
+</html>"#,
+    );
+
+    Ok(HttpResponse::Ok()
+        .content_type(ContentType::html())
+        // .insert_header(("Content-Security-Policy", CSP_BASE.get().unwrap().as_str()))
+        .body(html))
 }
 
 async fn dir(
     account: Account,
-    id: i64,
     path: String,
     topbar: Cow<'_, str>,
-    is_owner: bool,
 ) -> Result<HttpResponse, Box<dyn Error>> {
     let pathbuf = std::path::Path::new("blue").join(&path);
     let mut items = Vec::new();
 
     let base_abs = get_user_dir(account.id, None).join(&pathbuf);
 
-    for parent in pathbuf.ancestors() {
-        if Map::exists(&base_abs.join(parent)).await {
-            return Ok(HttpResponse::TemporaryRedirect()
-                .append_header(("Location", format!("/fs/{id}/{path}")))
-                .await
-                .unwrap());
-        }
-    }
+    // for parent in pathbuf.ancestors().skip(1) {
+    //     if Map::exists(&base_abs.join(parent)).await {
+    //         return Ok(HttpResponse::TemporaryRedirect()
+    //             .append_header(("Location", format!("/fs/{path}")))
+    //             .await
+    //             .unwrap());
+    //     }
+    // }
 
     for mut item in dir_items(account.id, &pathbuf, true, false).await? {
         if Map::exists(&base_abs.join(&item.name)).await {
@@ -124,10 +219,9 @@ async fn dir(
     }
 
     let nonce = gen_nonce();
-    let csp_header = format!("{} 'nonce-{nonce}'", CSP_BASE.get().unwrap());
     let items_props = FsItemProp {
         nonce,
-        id,
+        id: account.id,
         items: items.into_iter().map(FsItem::from).collect(),
         path: path.clone(),
     };
@@ -136,7 +230,7 @@ async fn dir(
         .await;
     let path_props = PathProp {
         path: path.trim_end_matches('/').to_string(),
-        id,
+        id: account.id,
     };
     let path_display = yew::ServerRenderer::<components::Path>::with_props(|| path_props)
         .render()
@@ -146,14 +240,13 @@ async fn dir(
         || matches!(
             path.split('/').collect::<Vec<_>>().as_slice(),
             ["Shared", _, ".system", ..]
-        )
-        || !is_owner
-    {
+        ) {
         r#"<img src="/static/icons/fileadd.svg" alt="" width="20px" height="20px" id="create" style="display: none;" /><img src="/static/icons/upload.svg" width="20px" height="20px" id="upload" style="display: none;" />"#
     } else {
         r#"<img src="/static/icons/fileadd.svg" width="20px" height="20px" id="create" /><img src="/static/icons/upload.svg" width="20px" height="20px" id="upload" />"#
     };
     let pathbuf_safe = html_escape::encode_safe(pathbuf.to_str().unwrap());
+    let id = account.id;
 
     let html = format!(
         r#"<!-- {{ "path": "{pathbuf_safe}", "id": {id} }} -->
@@ -219,6 +312,6 @@ async fn dir(
 
     Ok(HttpResponse::Ok()
         .content_type(ContentType::html())
-        .insert_header(("Content-Security-Policy", csp_header))
+        // .insert_header(("Content-Security-Policy", csp_header))
         .body(html))
 }

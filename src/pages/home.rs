@@ -54,7 +54,7 @@ pub async fn home(req: HttpRequest) -> HttpResponse {
     }
 
     HttpResponse::TemporaryRedirect()
-        .insert_header(("Location", format!("/fs/{}", account.id)))
+        .insert_header(("Location", "/fs"))
         .await
         .unwrap()
 }
