@@ -1,3 +1,10 @@
+{
+    let div = document.createElement("div");
+    div.id = "backdrop";
+    div.style.display = "none";
+    document.body.appendChild(div);
+}
+
 const isMobile = (() => {
     var match = window.matchMedia || window.msMatchMedia;
     if (match) {
@@ -22,6 +29,17 @@ function newTab(url) {
     a.dispatchEvent(e);
 }
 
+function formatBytes(a, b = 2) {
+    if (!+a) return "0 Bytes";
+    const c = 0 > b ? 0 : b,
+        d = Math.floor(Math.log(a) / Math.log(1024));
+    return `${parseFloat((a / Math.pow(1024, d)).toFixed(c))} ${
+        ["B", "KB", "MB", "GB", "TB"][d]
+    }`;
+}
+
+
+let backdrop = document.getElementById("backdrop");
 let closeBackdrop = true;
 let removeEnterBehaviour = true;
 let pathDisplay = document.getElementById("path-display");
@@ -520,6 +538,7 @@ function copyOverwriteTask(body) {
                     .slice(1, -1)
                     .join("/")}`.replace(/\/+$/, "")
             ];
+            refresh();
         })
         .catch((error) => console.error(error));
 }
@@ -577,6 +596,7 @@ function copyTask() {
                     .slice(1, -1)
                     .join("/")}`.replace(/\/+$/, "")
             ];
+            refresh();
         })
         .catch((error) => console.error(error));
 }
@@ -649,7 +669,6 @@ if (fslist) {
                 } else {
                     closeBackdrop = true;
                 }
-                create_reset();
             };
     document.querySelector("#moved .x").onclick = () => moved.close();
     document.querySelector("#copyd .x").onclick = () => copyd.close();
@@ -685,9 +704,9 @@ if (fslist) {
                     item.classList.contains("file") ||
                     item.classList.contains("hidden-file")
                 ) {
-                    item.innerHTML += `<div class="ellipsis"><img src="/static/icons/ellipsis.svg" class="dots"/><div class="dropdown hide"><div class="dropdown-content"><span class="dropdown-item" action="edit">Edit</span><span class="dropdown-item" action="move">Move</span><span class="dropdown-item" action="copy">Copy</span><span class="dropdown-item" action="download">Download</span><span class="dropdown-item" action="trash">Trash</span><span class="dropdown-item" action="visibility">Visibility<div class="dropdown dropdown-fold"><div class="dropdown-content"><div class="dropdown-item" action="public">Public</div><div class="dropdown-item" action="hidden">Hidden</div><div class="dropdown-item" action="private">Private</div><div class="dropdown-item" action="inherit">Inherit</div></div></div></span></div></div></div>`;
+                    item.innerHTML += `<div class="ellipsis"><img src="/static/icons/ellipsis.svg" class="dots"/><div class="dropdown hide"><div class="dropdown-content"><span class="dropdown-item" action="move">Move</span><span class="dropdown-item" action="copy">Copy</span><span class="dropdown-item" action="trash">Trash</span></div></div></div>`;
                 } else {
-                    item.innerHTML += `<div class="ellipsis"><img src="/static/icons/ellipsis.svg" class="dots"/><div class="dropdown hide"><div class="dropdown-content"><span class="dropdown-item" action="move">Move</span><span class="dropdown-item" action="copy">Copy</span><span class="dropdown-item" action="trash">Trash</span><span class="dropdown-item" action="visibility">Visibility<div class="dropdown dropdown-fold"><div class="dropdown-content"><div class="dropdown-item" action="public">Public</div><div class="dropdown-item" action="hidden">Hidden</div><div class="dropdown-item" action="private">Private</div><div class="dropdown-item" action="inherit">Inherit</div></div></div></span></div></div></div>`;
+                    item.innerHTML += `<div class="ellipsis"><img src="/static/icons/ellipsis.svg" class="dots"/><div class="dropdown hide"><div class="dropdown-content"><span class="dropdown-item" action="move">Move</span><span class="dropdown-item" action="copy">Copy</span><span class="dropdown-item" action="trash">Trash</span></div></div></div>`;
                 }
             } else {
                 item.innerHTML += `<div class="ellipsis"><img src="/static/icons/ellipsis.svg" class="dots"/><div class="dropdown hide"><div class="dropdown-content"><span class="dropdown-item" action="copy">Copy</span></div></div>`;
@@ -710,33 +729,6 @@ if (fslist) {
                         );
 
                     switch (action) {
-                        case "edit":
-                            window.location.pathname = `/edit/${path
-                                .split("/")
-                                .slice(1)
-                                .join("/")}`;
-                            break;
-                        case "download":
-                            path = path.split("/");
-                            let id = parseInt(path.shift());
-                            let url;
-                            path = path.join("/");
-
-                            console.log(id);
-                            console.log(path);
-                            if (id == localStorage.getItem("userid")) {
-                                url = `/api/storage/v1/file/${getToken()}/blue/${path}`;
-                            } else {
-                                url = `/api/usercontent/v1/file/id/${id}/blue/${path}`;
-                            }
-                            var link = document.createElement("a");
-                            link.download = path.split("/").pop();
-                            link.href = url;
-                            document.body.appendChild(link);
-                            link.click();
-                            document.body.removeChild(link);
-                            delete link;
-                            break;
                         case "delete": {
                             let delPath = path.split("/").slice(1).join("/");
                             let token = getToken();
@@ -759,98 +751,6 @@ if (fslist) {
                                             `Error deleting file: ${JSON.stringify(data.kind)}`,
                                         );
                                         return;
-                                    }
-                                    refresh();
-                                })
-                                .catch((error) => console.error(error));
-                            break;
-                        }
-                        case "visibility":
-                            option
-                                .getElementsByClassName("dropdown-fold")[0]
-                                .classList.remove("hide");
-                            break;
-                        case "public":
-                        case "private":
-                        case "hidden": {
-                            let vispath =
-                                option.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode
-                                    .getAttribute("path")
-                                    .split("/")
-                                    .slice(1)
-                                    .join("/");
-                            let token = getToken();
-                            let body = {
-                                path: `blue/${vispath}`,
-                                token,
-                                visibility: action,
-                            };
-
-                            fetch("/api/storage/v1/set-visibility", {
-                                method: "POST",
-                                headers: {
-                                    "Content-Type": "application/json",
-                                },
-                                body: JSON.stringify(body),
-                            })
-                                .then((response) => response.json())
-                                .then((data) => {
-                                    if (data.type == "error") {
-                                        alert(
-                                            `Error changing visibility: ${JSON.stringify(data.kind)}`,
-                                        );
-                                        return;
-                                    }
-                                    for (const path in cache) {
-                                        if (
-                                            path.startsWith(
-                                                `${window.history.state.path.split("/")[0]}/${vispath}`,
-                                            )
-                                        ) {
-                                            delete cache[path];
-                                        }
-                                    }
-                                    refresh();
-                                })
-                                .catch((error) => console.error(error));
-                            break;
-                        }
-                        case "inherit": {
-                            let vispath =
-                                option.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode
-                                    .getAttribute("path")
-                                    .split("/")
-                                    .slice(1)
-                                    .join("/");
-                            let token = getToken();
-                            let body = {
-                                path: `blue/${vispath}`,
-                                token,
-                            };
-
-                            fetch("/api/storage/v1/remove-visibility", {
-                                method: "POST",
-                                headers: {
-                                    "Content-Type": "application/json",
-                                },
-                                body: JSON.stringify(body),
-                            })
-                                .then((response) => response.json())
-                                .then((data) => {
-                                    if (data.type == "error") {
-                                        alert(
-                                            `Error changing visibility: ${JSON.stringify(data.kind)}`,
-                                        );
-                                        return;
-                                    }
-                                    for (const path in cache) {
-                                        if (
-                                            path.startsWith(
-                                                `${window.history.state.path.split("/")[0]}/${vispath}`,
-                                            )
-                                        ) {
-                                            delete cache[path];
-                                        }
                                     }
                                     refresh();
                                 })
@@ -919,19 +819,6 @@ if (fslist) {
             menu.addEventListener("auxclick", function (event) {
                 event.stopPropagation();
             });
-        }
-
-        for (const editBut of Array.from(
-            document.querySelectorAll('[action="edit"]'),
-        )) {
-            let path =
-                editBut.parentNode.parentNode.parentNode.parentNode.getAttribute(
-                    "path",
-                );
-
-            editBut.addEventListener("auxclick", (event) =>
-                newTab(`/edit/${path.split("/").slice(1).join("/")}`),
-            );
         }
     }
 
