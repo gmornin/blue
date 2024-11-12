@@ -171,7 +171,6 @@ async fn map(
       href="/static/images/logo.webp"
       type="image/x-icon"
     />
-    <script src="/static/scripts/file.js" defer></script>
     <title>{id}/{path_escaped}</title>
   </head>
   <body>
@@ -180,6 +179,8 @@ async fn map(
     {path_display}
 </div>
     <iframe id="viewer" src="{map_path}"></iframe> 
+    <script src="/static/scripts/file.js" defer></script>
+    <script src="/static/scripts/topbar.js" defer></script>
   </body>
 </html>"#,
     );
@@ -304,6 +305,7 @@ async fn dir(
 </div>
   {items_display}
   <script src="/static/scripts/fs.js" defer></script>
+  <script src="/static/scripts/topbar.js" defer></script>
   <!-- <script src="/static/scripts/upload.js" defer></script> -->
   </body>
 </html>"#,

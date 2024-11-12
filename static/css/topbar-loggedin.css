@@ -7,3 +7,19 @@
   /* background-color: green; */
   border-radius: 50%;
 }
+
+#logout {
+  margin-right: 10px;
+  transform: translateY(1px);
+}
+
+#logout {
+  transition: 100ms;
+  opacity: 50%;
+}
+
+#logout:hover {
+  cursor: pointer;
+  transition: 100ms;
+  opacity: 100%;
+}

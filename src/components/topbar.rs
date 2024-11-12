@@ -15,7 +15,7 @@ use actix_web::{HttpRequest, HttpResponse};
 use goodmorning_services::structs::Account;
 use yew::{function_component, html, Html, Properties};
 
-use crate::values::{BLUE_CONFIG, TOPBAR_LOGGEDOUT, TOPBAR_URLS};
+use crate::values::{BLUE_CONFIG, TOPBAR_URLS};
 
 // pub const TOPBAR_LOGGEDOUT: &str = r#"
 //     <div id="top-bar">
@@ -41,8 +41,8 @@ pub fn TopbarLoggedin(props: &TopbarLoggedinProps) -> Html {
         {Html::from_html_unchecked(implicit_clone::unsync::IString::Static(TOPBAR_URLS.get().unwrap()))}
       </div>
       <div id="top-bar-right">
-        <img src="/static/icons/bell.svg" id="notif-bell" alt="" width="15" />
-        <a href={format!("/user/{}", props.id)}> <img src={format!("/api/generic/v1/pfp/id/{}", props.id)} id="topbar-pfp" alt="" width="30" height="30" /></a>
+        <img src="/static/icons/logout.svg" id="logout" alt="" width="15" />
+        <img src={format!("/api/generic/v1/pfp/id/{}", props.id)} id="topbar-pfp" alt="" width="30" height="30" />
       </div>
     </div>
     }
@@ -79,7 +79,7 @@ pub async fn topbar_from_token(
         Err(res) => return Ok(Err(res)),
     } {
         Some((topbar, account)) => Ok(Ok((topbar, Some(account)))),
-        None => Ok(Ok((Cow::Borrowed(TOPBAR_LOGGEDOUT.get().unwrap()), None))),
+        None => unreachable!(),
     }
 }
 

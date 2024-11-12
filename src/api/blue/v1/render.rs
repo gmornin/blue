@@ -7,8 +7,8 @@ use actix_web::{
 };
 use goodmorning_services::{
     bindings::services::v1::{V1Error, V1Render, V1Response},
-    functions::{from_res, has_dotdot},
-    structs::{Account, Jobs},
+    functions::{from_res, get_user_dir, has_dotdot},
+    structs::{Account, GMServices, Jobs},
     MAX_CONCURRENT,
 };
 use tokio::fs;
@@ -34,7 +34,7 @@ async fn render_task(
     let symlinked_account = false;
 
     let mut from_path = PathBuf::from(post.from.trim_start_matches('/'));
-    let mut to_path = PathBuf::from(post.to.trim_start_matches('/'));
+    let mut to_path = std::path::Path::new("blue").join(post.to.trim_start_matches('/'));
     let to_path_original = to_path.clone();
 
     if let [_, "Shared", user, ..] = from_path
@@ -56,7 +56,7 @@ async fn render_task(
             .collect();
     }
 
-    if let [_, "Shared", user, ..] = to_path
+    if let ["Shared", user, ..] = to_path
         .iter()
         .map(|s| s.to_str().unwrap())
         .collect::<Vec<_>>()
@@ -67,7 +67,7 @@ async fn render_task(
         } else {
             to_path = [to_path.iter().next().unwrap()]
                 .into_iter()
-                .chain(to_path.iter().skip(3))
+                .chain(to_path.iter().skip(2))
                 .collect();
         }
     }
@@ -80,14 +80,14 @@ async fn render_task(
             .is_some_and(|p| p == OsStr::new(".system"))
         || to_path
             .iter()
-            .nth(1)
+            .next()
             .is_some_and(|p| p == OsStr::new(".system"))
         || has_dotdot(&PathBuf::from(&post.preset))
     {
         return Err(V1Error::PermissionDenied.into());
     }
 
-    if fs::try_exists(&to_path).await? {
+    if fs::try_exists(&get_user_dir(account.id, Some(GMServices::Blue)).join(&to_path)).await? {
         return Err(V1Error::PathOccupied.into());
     }
 
@@ -98,17 +98,6 @@ async fn render_task(
                 from: from_path,
                 to: to_path,
                 user: account.id,
-                dimension: match post.dimension {
-                    goodmorning_services::bindings::services::v1::Dimension::Overworld => {
-                        bluemap_singleserve::Dimension::Overworld
-                    }
-                    goodmorning_services::bindings::services::v1::Dimension::Nether => {
-                        bluemap_singleserve::Dimension::Nether
-                    }
-                    goodmorning_services::bindings::services::v1::Dimension::End => {
-                        bluemap_singleserve::Dimension::End
-                    }
-                },
                 preset: post.preset.trim_start_matches('/').to_string(),
             }),
             *MAX_CONCURRENT.get().unwrap(),

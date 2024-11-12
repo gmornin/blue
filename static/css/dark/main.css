@@ -50,3 +50,13 @@ textarea:focus {
 #backdrop {
   background-color: rgba(0, 0, 0, 0.5);
 }
+
+.dangerbut {
+  background-color: #bb1111;
+  color: white;
+}
+
+.dangerbut:hover,
+.dangerbut:disabled {
+  background-color: #ff0000;
+}

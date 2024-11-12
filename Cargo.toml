@@ -5,8 +5,8 @@ edition = "2021"
 
 [dependencies]
 # goodmorning-services = { path = "../services/", version = "*", features = [ "blue" ]}
-goodmorning-services = { git = "https://github.com/gmornin/services", rev = "1a8675f", features = [ "blue" ] }
-bluemap-singleserve = { git = "https://github.com/Siriusmart/bluemap-singleserve", rev = "9ed862f" }
+goodmorning-services = { git = "https://github.com/gmornin/services", rev = "e0e1f1d", features = [ "blue" ] }
+bluemap-singleserve = { git = "https://github.com/Siriusmart/bluemap-singleserve", rev = "e6e06b8" }
 # bluemap-singleserve = { path = "../bluemap-singleserve", version = "*" }
 actix-web = "4.9"
 tokio = { version = "1.41", features = ["fs"] }

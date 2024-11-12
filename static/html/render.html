@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="/static/css/main.css" />
+    <link rel="stylesheet" href="/static/css/topbar.css" />
+    <link rel="stylesheet" href="/static/css/topbar-signedout.css" />
+    <link rel="stylesheet" href="/static/css/render.css" />
+    <link rel="stylesheet" href="/static/css/topbar-loggedin.css" />
+    <link rel="stylesheet" href="/static/css/dark/main.css" />
+    <link rel="stylesheet" href="/static/css/dark/topbar.css" />
+    <link rel="stylesheet" href="/static/css/dark/path.css" />
+    <link rel="stylesheet" href="/static/css/dark/topbar-signedout.css" />
+    <link rel="stylesheet" href="/static/css/dark/render.css" />
+    <link
+      rel="shortcut icon"
+      href="/static/images/favicon-dark.svg"
+      type="image/x-icon"
+    />
+    <title>Map preview - GM Blue</title>
+  </head>
+  <body>
+    <div id="top-bar">
+      <div id="top-bar-left">
+        <a href="/" id="top-bar-icon"
+          ><img src="/static/images/favicon-dark.svg" alt="" width="30"
+        /></a>
+        <a href="/docs" class="top-bar-link">API</a>
+        <a href="" class="top-bar-link">Blog</a>
+      </div>
+      <div id="top-bar-right">
+        <img src="/static/icons/bell.svg" id="notif-bell" alt="" width="15" />
+        <img
+          src="/api/generic/v1/pfp/id/1"
+          id="topbar-pfp"
+          alt=""
+          width="30"
+          height="30"
+        />
+      </div>
+    </div>
+    <div id="tiles">
+      <div id="left">
+        <h1>Select a file</h1>
+        <span
+          >Souce: <span class="path">.tex/Shared/Cadet/base.mcworld</span></span
+        >
+        <span
+          >Target:
+          <span class="path">.blue/Shared/Cadet/base.mcworld</span></span
+        >
+      </div>
+      <div id="mid">
+        <h1>Choose a preset</h1>
+        <select id="preset">
+          <option value="overworld.conf">overworld.conf</option>
+          <option value="nether.conf">nether.conf</option>
+          <option value="end.conf">end.conf</option>
+        </select>
+      </div>
+      <div id="right">
+        <h1>Start rendering</h1>
+        <button class="ghbutton" id="render">Render to BlueMap</button>
+        <br />
+        <br />
+        <span id="timer">Rendering: 01:23 elapsed</span>
+        <span id="failed">Server responded with error</span>
+        <span id="success">Map rendering done</span>
+        <br />
+        <button class="ghbutton dangerbut" id="viewerror">View error message</button>
+        <button class="ghbutton" id="reload">Reload page</button>
+      </div>
+    </div>
+  </body>
+</html>

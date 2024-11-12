@@ -14,6 +14,7 @@ async fn main() {
             .service(r#static)
             .service(gm_blue::api::scope())
             .service(pages::home)
+            .service(pages::render)
             .service(pages::fspath)
             .service(pages::root)
             .app_data(jobs.clone())

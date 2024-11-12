@@ -1,0 +1,64 @@
+#left span, #right span {
+  display: block;
+}
+
+#left span.path,
+#preset, #timer, #failed, #success {
+  display: inline;
+  font-family: Consolas, Monaco, "Andale Mono", "Ubuntu Mono", monospace;
+}
+
+#preset,
+#render {
+  margin-top: 1em;
+}
+
+button {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+@media only screen and (max-width: 1110px) {
+  #tiles {
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
+    width: 80vw;
+  }
+
+  #tiles div {
+    text-align: center;
+    padding: 3em;
+  }
+
+  #tiles div:not(:last-child) {
+    border-bottom: 1px solid #286688;
+  }
+}
+
+@media only screen and (min-width: 1111px) {
+  #tiles div {
+    text-align: center;
+    flex-shrink: 0;
+    flex-grow: 1;
+    padding: 3em;
+  }
+
+  #tiles div:not(:last-child) {
+    border-right: 1px solid #286688;
+  }
+
+  #tiles {
+    height: 80vh;
+    display: flex;
+  }
+}
+
+#preset {
+  background-color: transparent;
+  border: none;
+}
+
+.ghbutton:disabled.not-allowed:hover {
+  cursor: not-allowed;
+}

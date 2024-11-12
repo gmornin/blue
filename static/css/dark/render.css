@@ -1,0 +1,23 @@
+#left span {
+    color: #ccddff;
+}
+
+#left .path {
+    color: #99aacc;
+}
+
+#preset {
+    color: white
+}
+
+#timer {
+    color: #ccddff
+}
+
+#failed {
+    color: #ffddcc
+}
+
+#success {
+    color: #ccffcc
+}

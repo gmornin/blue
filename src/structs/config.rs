@@ -16,6 +16,11 @@ pub struct BlueConfig {
     pub allow_create: bool,
     #[serde(default = "topbar_urls_default")]
     pub topbar_urls: Vec<UrlItem>,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub alternate_pfp: Option<String>,
+    #[serde(default = "default_preset_default")]
+    pub default_preset: String,
 }
 
 fn allow_create_default() -> bool {
@@ -42,6 +47,8 @@ impl Default for BlueConfig {
             port: 8080,
             allow_create: allow_create_default(),
             topbar_urls: topbar_urls_default(),
+            alternate_pfp: None,
+            default_preset: default_preset_default(),
         }
     }
 }
@@ -79,4 +86,8 @@ fn topbar_urls_default() -> Vec<UrlItem> {
             label: "Source code".to_string(),
         },
     ]
+}
+
+fn default_preset_default() -> String {
+    "overworld.conf".to_string()
 }

@@ -1,5 +1,6 @@
-use std::{path::PathBuf, sync::OnceLock};
+use std::{ffi::OsStr, fs, path::PathBuf, sync::OnceLock};
 
+use bluemap_singleserve::{Config, MasterConfig};
 use goodmorning_services::{functions::parse_path, traits::ConfigTrait, SELF_ADDR};
 
 use crate::structs::BlueConfig;
@@ -8,8 +9,8 @@ pub static BLUE_CONFIG: OnceLock<BlueConfig> = OnceLock::new();
 
 pub static TOPBAR_URLS: OnceLock<String> = OnceLock::new();
 pub static PFP_DEFAULT: OnceLock<PathBuf> = OnceLock::new();
-pub static TOPBAR_LOGGEDOUT: OnceLock<String> = OnceLock::new();
 pub static CSP_BASE: OnceLock<String> = OnceLock::new();
+pub static PRESETS: OnceLock<Vec<String>> = OnceLock::new();
 
 pub fn init() {
     let _ = BLUE_CONFIG.set(*BlueConfig::load().unwrap());
@@ -21,6 +22,28 @@ pub fn init() {
             SELF_ADDR.get().unwrap()
         ))
         .unwrap();
+
+    let mut presets = fs::read_dir(&MasterConfig::get().templates)
+        .unwrap()
+        .filter_map(|entry| {
+            if entry.as_ref().unwrap().path().extension() == Some(OsStr::new("conf")) {
+                Some(
+                    entry
+                        .unwrap()
+                        .path()
+                        .file_name()
+                        .unwrap()
+                        .to_string_lossy()
+                        .to_string(),
+                )
+            } else {
+                None
+            }
+        })
+        .collect::<Vec<_>>();
+    presets.sort();
+
+    PRESETS.set(presets).unwrap();
 
     TOPBAR_URLS
         .set(
@@ -39,23 +62,5 @@ pub fn init() {
                 .collect::<Vec<_>>()
                 .join(""),
         )
-        .unwrap();
-
-    TOPBAR_LOGGEDOUT
-        .set(format!(
-            r#"<div id="top-bar">
-      <div id="top-bar-left">
-	<a href="/" id="top-bar-icon"><img src="/static/images/logo.webp" alt="" width="30"></a>
-    {}
-      </div>
-      <div id="top-bar-right">
-        <a href="/login" class="buttonlike buttonlike-hover" id="signin">Sign in</a>
-        <a href="/login?type=new" class="buttonlike hover-dropshadow" id="top-bar-register"
-          >Register</a
-        >
-      </div>
-    </div>"#,
-            TOPBAR_URLS.get().unwrap()
-        ))
         .unwrap();
 }

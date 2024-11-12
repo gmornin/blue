@@ -180,7 +180,7 @@ function signin() {
           document.cookie = `token=${data.token}; path=/; max-age=31536000; same-site=lax; Secure`;
           localStorage.setItem("userid", data.id);
           errorDisplay.innerText = "You are logged in!";
-          window.location.pathname = "/";
+          location.reload();
           return;
         default:
           errorDisplay.innerText = `Unexpected server response`;

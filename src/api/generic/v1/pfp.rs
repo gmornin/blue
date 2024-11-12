@@ -21,7 +21,21 @@ pub async fn pfp(id: web::Path<i64>, req: HttpRequest) -> HttpResponse {
 }
 
 async fn pfp_task(id: web::Path<i64>, req: HttpRequest) -> Result<HttpResponse, Box<dyn Error>> {
-    let path = get_usersys_dir(*id, Some(GMServices::Blue)).join("pfp.png");
+    let conf = BLUE_CONFIG.get().unwrap();
+    let path = get_user_dir(*id, None)
+        .join(
+            conf.alternate_pfp
+                .as_deref()
+                .unwrap_or(GMServices::Blue.as_str()),
+        )
+        .join(".system")
+        .join("pfp.png");
+
+    if !fs::try_exists(&path).await? {
+        return Ok(NamedFile::open_async(&conf.pfp_default)
+            .await?
+            .into_response(&req));
+    }
 
     if !fs::try_exists(path.parent().unwrap()).await? {
         return Ok(from_res::<V1Response>(Err(V1Error::NotCreated.into())));
@@ -62,14 +76,20 @@ async fn pfp_name_task(
         return Ok(from_res::<V1Response>(Err(V1Error::NotCreated.into())));
     }
 
-    let path = get_usersys_dir(account.id, Some(GMServices::Blue)).join("pfp.png");
+    let conf = BLUE_CONFIG.get().unwrap();
+    let path = get_user_dir(account.id, None)
+        .join(
+            conf.alternate_pfp
+                .as_deref()
+                .unwrap_or(GMServices::Blue.as_str()),
+        )
+        .join(".system")
+        .join("pfp.png");
 
     if !fs::try_exists(&path).await? {
-        return Ok(
-            NamedFile::open_async(&BLUE_CONFIG.get().unwrap().pfp_default)
-                .await?
-                .into_response(&req),
-        );
+        return Ok(NamedFile::open_async(&conf.pfp_default)
+            .await?
+            .into_response(&req));
     }
 
     let mut res = NamedFile::open_async(path).await?.into_response(&req);

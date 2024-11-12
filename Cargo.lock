@@ -444,7 +444,7 @@ dependencies = [
 [[package]]
 name = "bluemap-singleserve"
 version = "0.1.0"
-source = "git+https://github.com/Siriusmart/bluemap-singleserve?rev=9ed862f#9ed862f442e7c6b0562d61e4c367e1dff687677b"
+source = "git+https://github.com/Siriusmart/bluemap-singleserve?rev=e6e06b8#e6e06b840be2dd027f6002a43ae2ab319405fc81"
 dependencies = [
  "actix-files",
  "actix-web",
@@ -1421,7 +1421,7 @@ dependencies = [
 [[package]]
 name = "goodmorning-bindings"
 version = "0.1.0"
-source = "git+https://github.com/gmornin/rust-bindings?rev=8148015#81480153821ff95fe1ac202aa48640716b435f75"
+source = "git+https://github.com/gmornin/rust?rev=bad2499#bad2499274ea54f18701512bd913e191c26cbf42"
 dependencies = [
  "chrono",
  "dyn-clone",
@@ -1432,7 +1432,7 @@ dependencies = [
 [[package]]
 name = "goodmorning-services"
 version = "0.1.0"
-source = "git+https://github.com/gmornin/services?rev=1a8675f#1a8675fba0cc585e5a3fe5142b1f127f67683f59"
+source = "git+https://github.com/gmornin/services?rev=e0e1f1d#e0e1f1dd54fc30b3a8b86010abcac734546d31d6"
 dependencies = [
  "actix-files",
  "actix-multipart",
