@@ -27,3 +27,12 @@ pub async fn static_services(params: Path<String>) -> Result<NamedFile> {
     )
     .await?)
 }
+
+#[get("/remindverify")]
+pub async fn remindverify() -> Result<NamedFile> {
+    Ok(NamedFile::open_async(
+        std::path::Path::new(&BLUE_CONFIG.get().unwrap().static_path)
+            .join("html/remindverify.html"),
+    )
+    .await?)
+}

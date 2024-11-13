@@ -1421,7 +1421,7 @@ dependencies = [
 [[package]]
 name = "goodmorning-bindings"
 version = "0.1.0"
-source = "git+https://github.com/gmornin/rust?rev=bad2499#bad2499274ea54f18701512bd913e191c26cbf42"
+source = "git+https://github.com/gmornin/rust?rev=71c0bac#71c0bac1ae99a8ac690d20d007f36f4c79b10731"
 dependencies = [
  "chrono",
  "dyn-clone",
@@ -1432,7 +1432,7 @@ dependencies = [
 [[package]]
 name = "goodmorning-services"
 version = "0.1.0"
-source = "git+https://github.com/gmornin/services?rev=e0e1f1d#e0e1f1dd54fc30b3a8b86010abcac734546d31d6"
+source = "git+https://github.com/gmornin/services?rev=c08bdd1#c08bdd18fd7cb1829b513dbd033059b05a3f1f73"
 dependencies = [
  "actix-files",
  "actix-multipart",

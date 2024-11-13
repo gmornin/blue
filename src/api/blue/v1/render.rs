@@ -7,9 +7,10 @@ use actix_web::{
 };
 use goodmorning_services::{
     bindings::services::v1::{V1Error, V1Render, V1Response},
-    functions::{from_res, get_user_dir, has_dotdot},
+    functions::{from_res, get_user_dir, get_usersys_dir, has_dotdot},
     structs::{Account, GMServices, Jobs},
-    MAX_CONCURRENT,
+    traits::CollectionItem,
+    ACCOUNTS, MAX_CONCURRENT, QUEUE_LIMIT, QUEUE_PRESETS,
 };
 use tokio::fs;
 
@@ -56,6 +57,17 @@ async fn render_task(
             .collect();
     }
 
+    if !account
+        .services
+        .contains(&GMServices::Blue.as_str().to_string())
+    {
+        let path = get_usersys_dir(account.id, Some(GMServices::Blue));
+        fs::create_dir_all(&path).await?;
+
+        account.services.push(GMServices::Blue.as_str().to_string());
+        account.save_replace(ACCOUNTS.get().unwrap()).await?;
+    }
+
     if let ["blue", "Shared", user, ..] = to_path
         .iter()
         .map(|s| s.to_str().unwrap())
@@ -100,7 +112,18 @@ async fn render_task(
                 user: account.id,
                 preset: post.preset.trim_start_matches('/').to_string(),
             }),
-            *MAX_CONCURRENT.get().unwrap(),
+            QUEUE_PRESETS
+                .get()
+                .unwrap()
+                .get(&account.limit)
+                .map(|c| c.max_concurrent)
+                .unwrap_or(*MAX_CONCURRENT.get().unwrap()),
+            QUEUE_PRESETS
+                .get()
+                .unwrap()
+                .get(&account.limit)
+                .map(|c| c.queue_limit)
+                .unwrap_or(*QUEUE_LIMIT.get().unwrap()),
             goodmorning_services::bindings::structs::ApiVer::V1,
             Duration::from_secs(900),
         )

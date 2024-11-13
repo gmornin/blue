@@ -6,7 +6,9 @@ use actix_web::routes;
 use actix_web::{get, http::header::ContentType, web::Path, HttpRequest, HttpResponse};
 use bluemap_singleserve::Map;
 use goodmorning_services::bindings::services::v1::V1Error;
-use goodmorning_services::functions::cookie_to_str;
+use goodmorning_services::functions::{cookie_to_str, get_usersys_dir};
+use goodmorning_services::traits::CollectionItem;
+use goodmorning_services::ACCOUNTS;
 use goodmorning_services::{
     functions::{dir_items, get_user_dir},
     structs::{Account, GMServices},
@@ -51,7 +53,7 @@ async fn fs_task(path: Path<String>, req: &HttpRequest) -> Result<HttpResponse, 
     };
 
     let mut account = if let Some(account) = account {
-        account
+        account.v1_restrict_verified()?
     } else {
         return Ok(NamedFile::open_async(
             std::path::Path::new(&BLUE_CONFIG.get().unwrap().static_path).join("html/login.html"),
@@ -76,6 +78,17 @@ async fn fs_task(path: Path<String>, req: &HttpRequest) -> Result<HttpResponse, 
             return Err(V1Error::FileNotFound.into());
         };
         preview_path = preview_path.iter().skip(2).collect();
+    }
+
+    if !account
+        .services
+        .contains(&GMServices::Blue.as_str().to_string())
+    {
+        let path = get_usersys_dir(account.id, Some(GMServices::Blue));
+        fs::create_dir_all(&path).await?;
+
+        account.services.push(GMServices::Blue.as_str().to_string());
+        account.save_replace(ACCOUNTS.get().unwrap()).await?;
     }
 
     // get_user_dir(account.id, None).join(&path);
