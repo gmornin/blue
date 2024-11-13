@@ -38,7 +38,6 @@ function formatBytes(a, b = 2) {
     }`;
 }
 
-
 let backdrop = document.getElementById("backdrop");
 let closeBackdrop = true;
 let removeEnterBehaviour = true;
@@ -106,7 +105,11 @@ function go(path, skipCheck, dontpush) {
 
     if (cache[path]) {
         if (!dontpush)
-            window.history.pushState({ path: path }, "", `/fs/${path.split('/').slice(1).join('/')}`);
+            window.history.pushState(
+                { path: path },
+                "",
+                `/fs/${path.split("/").slice(1).join("/")}`,
+            );
         display(path, cache[path]);
         conditionallyAddDots();
         return;
@@ -114,59 +117,32 @@ function go(path, skipCheck, dontpush) {
 
     let id = path.split("/")[0];
 
-    if (id === localStorage.getItem("userid") && token) {
-        fetch(
-            `/api/blue/v1/diritems/${token}/blue/${path
-                .split("/")
-                .slice(1)
-                .join("/")}`,
-        )
-            .then((response) => response.json())
-            .then((data) => {
-                if (data.error) {
-                    alert(data.error);
-                }
+    fetch(
+        `/api/blue/v1/diritems/${token}/${path.split("/").slice(1).join("/")}`,
+    )
+        .then((response) => response.json())
+        .then((data) => {
+            if (data.error) {
+                alert(data.error);
+            }
 
-                if (data.type !== "dir content") {
-                    alert(
-                        `Expected response type of "dir content", got ${data.type} instead`,
-                    );
-                    return;
-                }
-                if (!dontpush)
-                    window.history.pushState({ path: path }, "", `/fs/${path.split('/').slice(1).join('/')}`);
-                cache[path] = data.content;
-                display(path, data.content);
-                conditionallyAddDots();
-            })
-            .catch((error) => console.error(error));
-    } else {
-        fetch(
-            `/api/usercontent/v1/diritems/id/${id}/blue/${path
-                .split("/")
-                .slice(1)
-                .join("/")}`,
-        )
-            .then((response) => response.json())
-            .then((data) => {
-                if (data.error) {
-                    alert(data.error);
-                }
-
-                if (data.type !== "dir content") {
-                    alert(
-                        `Expected response type of "dir content", got ${data.type} instead`,
-                    );
-                    return;
-                }
-                if (!dontpush)
-                    window.history.pushState({ path: path }, "", `/fs/${path.split('/').slice(1).join('/')}`);
-                cache[path] = data.content;
-                display(path, data.content);
-                conditionallyAddDots();
-            })
-            .catch((error) => console.error(error));
-    }
+            if (data.type !== "dir content") {
+                alert(
+                    `Expected response type of "dir content", got ${data.type} instead`,
+                );
+                return;
+            }
+            if (!dontpush)
+                window.history.pushState(
+                    { path: path },
+                    "",
+                    `/fs/${path.split("/").slice(1).join("/")}`,
+                );
+            cache[path] = data.content;
+            display(path, data.content);
+            conditionallyAddDots();
+        })
+        .catch((error) => console.error(error));
 }
 
 function refresh(path) {
@@ -272,7 +248,7 @@ function addListeners() {
             if (path === null) return;
             fragment.addEventListener("click", (_ev) => go(path));
             fragment.addEventListener("auxclick", (_event) =>
-                newTab(`/fs/${path}`),
+                newTab(`/fs/${path.split('/').slice(1).join('/')}`),
             );
         },
     );
@@ -286,7 +262,7 @@ function addListeners() {
                     event.target.classList.contains("dropdown-item")
                 )
                     return;
-                window.location.pathname = `/fs/${fragment.getAttribute("path").split('/').slice(1).join('/')}`;
+                window.location.pathname = `/fs/${fragment.getAttribute("path").split("/").slice(1).join("/")}`;
             });
         } else {
             fragment.addEventListener("click", (event) => {
@@ -299,7 +275,7 @@ function addListeners() {
             });
         }
         fragment.addEventListener("auxclick", (_event) =>
-            newTab(`/fs/${path}`),
+            newTab(`/fs/${path.split('/').slice(1).join('/')}`),
         );
     });
 }

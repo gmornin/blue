@@ -60,6 +60,8 @@ async fn fs_task(path: Path<String>, req: &HttpRequest) -> Result<HttpResponse, 
         .into_response(req));
     };
 
+    let id = account.id;
+
     let mut preview_path = PathBuf::from(&path);
 
     if let ["Shared", user, ..] = preview_path
@@ -90,18 +92,44 @@ async fn fs_task(path: Path<String>, req: &HttpRequest) -> Result<HttpResponse, 
         let pathbuf = std::path::Path::new("blue").join(&path);
         let base_abs = get_user_dir(account.id, None);
 
-        for parent in pathbuf.ancestors() {
-            if Map::exists(&base_abs.join(parent)).await {
-                // dbg!(pathbuf.iter().skip(i).collect::<PathBuf>());
-                return Map::serve(
-                    &base_abs.join(parent),
-                    &pathbuf
-                        .iter()
-                        .skip(parent.iter().count())
-                        .collect::<PathBuf>(),
-                    req,
-                )
-                .await;
+        if let &["blue", "Shared", username, ..] = pathbuf
+            .iter()
+            .map(|s| s.to_str().unwrap())
+            .collect::<Vec<_>>()
+            .as_slice()
+        {
+            if username.eq_ignore_ascii_case(&account.username) {
+                let pathbuf = std::path::Path::new("blue")
+                    .iter()
+                    .chain(pathbuf.iter().skip(3))
+                    .collect::<PathBuf>();
+                for parent in pathbuf.ancestors() {
+                    if Map::exists(&base_abs.join(parent)).await {
+                        return Map::serve(
+                            &base_abs.join(parent),
+                            &pathbuf
+                                .iter()
+                                .skip(parent.iter().count())
+                                .collect::<PathBuf>(),
+                            req,
+                        )
+                        .await;
+                    }
+                }
+            }
+        } else {
+            for parent in pathbuf.ancestors() {
+                if Map::exists(&base_abs.join(parent)).await {
+                    return Map::serve(
+                        &base_abs.join(parent),
+                        &pathbuf
+                            .iter()
+                            .skip(parent.iter().count())
+                            .collect::<PathBuf>(),
+                        req,
+                    )
+                    .await;
+                }
             }
         }
     }
@@ -123,13 +151,20 @@ async fn fs_task(path: Path<String>, req: &HttpRequest) -> Result<HttpResponse, 
     }
 
     if matches!(path.as_str(), "Shared" | "Shared/") {
-        return dir(account, path, topbar).await;
+        return dir(account, id, path.clone(), path.to_string(), topbar).await;
     }
 
     if !fs::try_exists(&pathbuf).await? {
         return Err(V1Error::FileNotFound.into());
     }
-    dir(account, path, topbar).await
+    dir(
+        account,
+        id,
+        preview_path.to_string_lossy().trim_matches('/').to_string(),
+        path.to_string(),
+        topbar,
+    )
+    .await
 }
 
 async fn map(
@@ -193,7 +228,9 @@ async fn map(
 
 async fn dir(
     account: Account,
+    id: i64,
     path: String,
+    path_original: String,
     topbar: Cow<'_, str>,
 ) -> Result<HttpResponse, Box<dyn Error>> {
     let pathbuf = std::path::Path::new("blue").join(&path);
@@ -211,6 +248,20 @@ async fn dir(
     // }
 
     for mut item in dir_items(account.id, &pathbuf, true, false).await? {
+        if id != account.id
+            && matches!(
+                std::path::Path::new(&path_original)
+                    .join(&item.name)
+                    .iter()
+                    .map(|s| s.to_str().unwrap())
+                    .collect::<Vec<_>>()
+                    .as_slice(),
+                &["Shared", _, "Shared", ..]
+            )
+        {
+            continue;
+        }
+
         if Map::exists(&base_abs.join(&item.name)).await {
             item.is_file = true;
             items.push(item);
@@ -221,6 +272,11 @@ async fn dir(
 
     let nonce = gen_nonce();
     let items_props = FsItemProp {
+        prepend: if id != account.id {
+            Some(format!("{id}/Shared/{}", account.username))
+        } else {
+            None
+        },
         nonce,
         id: account.id,
         items: items.into_iter().map(FsItem::from).collect(),
@@ -230,8 +286,8 @@ async fn dir(
         .render()
         .await;
     let path_props = PathProp {
-        path: path.trim_end_matches('/').to_string(),
-        id: account.id,
+        path: path_original.clone(),
+        id,
     };
     let path_display = yew::ServerRenderer::<components::Path>::with_props(|| path_props)
         .render()
@@ -247,7 +303,6 @@ async fn dir(
         r#"<img src="/static/icons/fileadd.svg" width="20px" height="20px" id="create" /><img src="/static/icons/upload.svg" width="20px" height="20px" id="upload" />"#
     };
     let pathbuf_safe = html_escape::encode_safe(pathbuf.to_str().unwrap());
-    let id = account.id;
 
     let html = format!(
         r#"<!-- {{ "path": "{pathbuf_safe}", "id": {id} }} -->
@@ -309,7 +364,7 @@ async fn dir(
   <!-- <script src="/static/scripts/upload.js" defer></script> -->
   </body>
 </html>"#,
-        html_escape::encode_safe(&format!("{}/{path}", id))
+        html_escape::encode_safe(&format!("{}/{path_original}", id))
     );
 
     Ok(HttpResponse::Ok()

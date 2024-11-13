@@ -1,9 +1,10 @@
-use std::error::Error;
 use std::fmt::Write;
+use std::{error::Error, path::PathBuf};
 
 use actix_files::NamedFile;
 use actix_web::{get, http::header::ContentType, web, HttpRequest, HttpResponse};
 use bluemap_singleserve::Map;
+use goodmorning_services::structs::Account;
 use goodmorning_services::{
     bindings::services::v1::V1Error,
     functions::{cookie_to_str, get_user_dir},
@@ -49,7 +50,7 @@ async fn render_task(
         Err(res) => return Ok(res),
     };
 
-    let account = if let Some(account) = account {
+    let mut account = if let Some(account) = account {
         account
     } else {
         return Ok(NamedFile::open_async(
@@ -59,12 +60,28 @@ async fn render_task(
         .into_response(req));
     };
 
-    if Map::exists(
-        &get_user_dir(account.id, Some(GMServices::Blue))
-            .join(query.target.trim_start_matches('/')),
-    )
-    .await
+    let mut source_path = PathBuf::from(&query.source.trim_matches('/'));
+    let mut target_path = PathBuf::from(&query.target.trim_matches('/'));
+
+    if let [service, "Shared", user, ..] = source_path
+        .iter()
+        .map(|s| s.to_str().unwrap())
+        .collect::<Vec<_>>()
+        .as_slice()
     {
+        account = if let Some(account) = Account::find_by_username(user.to_string()).await? {
+            account.v1_restrict_verified()?
+        } else {
+            return Err(V1Error::FileNotFound.into());
+        };
+        target_path = target_path.iter().skip(2).collect();
+        source_path = std::path::Path::new(service)
+            .iter()
+            .chain(source_path.iter().skip(3))
+            .collect();
+    }
+
+    if Map::exists(&get_user_dir(account.id, Some(GMServices::Blue)).join(&target_path)).await {
         return Ok(HttpResponse::TemporaryRedirect()
             .insert_header((
                 "Location",
@@ -74,17 +91,11 @@ async fn render_task(
             .unwrap());
     }
 
-    if !fs::try_exists(get_user_dir(account.id, None).join(query.source.trim_start_matches('/')))
-        .await?
-    {
+    if !fs::try_exists(get_user_dir(account.id, None).join(&source_path)).await? {
         return Err(V1Error::FileNotFound.into());
     }
 
-    if fs::try_exists(
-        get_user_dir(account.id, Some(GMServices::Blue)).join(query.target.trim_start_matches('/')),
-    )
-    .await?
-    {
+    if fs::try_exists(get_user_dir(account.id, Some(GMServices::Blue)).join(&target_path)).await? {
         return Err(V1Error::PathOccupied.into());
     }
 

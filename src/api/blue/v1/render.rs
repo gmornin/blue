@@ -56,7 +56,7 @@ async fn render_task(
             .collect();
     }
 
-    if let ["Shared", user, ..] = to_path
+    if let ["blue", "Shared", user, ..] = to_path
         .iter()
         .map(|s| s.to_str().unwrap())
         .collect::<Vec<_>>()
@@ -67,7 +67,7 @@ async fn render_task(
         } else {
             to_path = [to_path.iter().next().unwrap()]
                 .into_iter()
-                .chain(to_path.iter().skip(2))
+                .chain(to_path.iter().skip(3))
                 .collect();
         }
     }
