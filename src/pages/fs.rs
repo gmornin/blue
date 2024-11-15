@@ -5,7 +5,7 @@ use actix_web::http::header::HeaderValue;
 use actix_web::routes;
 use actix_web::{get, http::header::ContentType, web::Path, HttpRequest, HttpResponse};
 use bluemap_singleserve::Map;
-use goodmorning_services::bindings::services::v1::V1Error;
+use goodmorning_services::bindings::services::v1::{AccessType, V1Error};
 use goodmorning_services::functions::{cookie_to_str, get_usersys_dir};
 use goodmorning_services::traits::CollectionItem;
 use goodmorning_services::ACCOUNTS;
@@ -77,6 +77,13 @@ async fn fs_task(path: Path<String>, req: &HttpRequest) -> Result<HttpResponse, 
         } else {
             return Err(V1Error::FileNotFound.into());
         };
+        if !account
+            .access
+            .get(AccessType::File.as_str())
+            .is_some_and(|set| set.contains(&id))
+        {
+            return Err(V1Error::FileNotFound.into());
+        }
         preview_path = preview_path.iter().skip(2).collect();
     }
 
@@ -160,7 +167,7 @@ async fn fs_task(path: Path<String>, req: &HttpRequest) -> Result<HttpResponse, 
     }
 
     if Map::exists(&pathbuf).await {
-        return map(account, id, path, topbar).await;
+        return map(id, path, topbar).await;
     }
 
     if matches!(path.as_str(), "Shared" | "Shared/") {
@@ -180,12 +187,7 @@ async fn fs_task(path: Path<String>, req: &HttpRequest) -> Result<HttpResponse, 
     .await
 }
 
-async fn map(
-    account: Account,
-    id: i64,
-    path: String,
-    topbar: Cow<'_, str>,
-) -> Result<HttpResponse, Box<dyn Error>> {
+async fn map(id: i64, path: String, topbar: Cow<'_, str>) -> Result<HttpResponse, Box<dyn Error>> {
     let path_escaped = html_escape::encode_safe(&path).to_string();
     let map_path_dirty = format!("/fs/{}/map", path.trim_matches('/'));
     let map_path = html_escape::encode_text(&map_path_dirty);
@@ -197,7 +199,6 @@ async fn map(
     .render()
     .await;
 
-    let id = account.id;
     let html = format!(
         r#"
 <!DOCTYPE html>
