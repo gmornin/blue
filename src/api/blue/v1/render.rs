@@ -6,7 +6,7 @@ use actix_web::{
     HttpResponse,
 };
 use goodmorning_services::{
-    bindings::services::v1::{V1Error, V1Render, V1Response},
+    bindings::services::v1::{AccessType, V1Error, V1Render, V1Response},
     functions::{from_res, get_user_dir, get_usersys_dir, has_dotdot},
     structs::{Account, GMServices, Jobs},
     traits::CollectionItem,
@@ -37,6 +37,7 @@ async fn render_task(
     let mut from_path = PathBuf::from(post.from.trim_start_matches('/'));
     let mut to_path = std::path::Path::new("blue").join(post.to.trim_start_matches('/'));
     let to_path_original = to_path.clone();
+    let id = account.id;
 
     if let [_, "Shared", user, ..] = from_path
         .iter()
@@ -51,6 +52,15 @@ async fn render_task(
         } else {
             return Err(V1Error::FileNotFound.into());
         };
+
+        if !account
+            .access
+            .get(AccessType::File.as_str())
+            .is_some_and(|set| set.contains(&id))
+        {
+            return Err(V1Error::FileNotFound.into());
+        }
+
         from_path = [from_path.iter().next().unwrap()]
             .into_iter()
             .chain(from_path.iter().skip(3))

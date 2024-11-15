@@ -4,6 +4,7 @@ use std::{error::Error, path::PathBuf};
 use actix_files::NamedFile;
 use actix_web::{get, http::header::ContentType, web, HttpRequest, HttpResponse};
 use bluemap_singleserve::Map;
+use goodmorning_services::bindings::services::v1::AccessType;
 use goodmorning_services::structs::Account;
 use goodmorning_services::{
     bindings::services::v1::V1Error,
@@ -60,6 +61,8 @@ async fn render_task(
         .into_response(req));
     };
 
+    let id = account.id;
+
     let mut source_path = PathBuf::from(&query.source.trim_matches('/'));
     let mut target_path = PathBuf::from(&query.target.trim_matches('/'));
 
@@ -74,6 +77,14 @@ async fn render_task(
         } else {
             return Err(V1Error::FileNotFound.into());
         };
+
+        if !account
+            .access
+            .get(AccessType::File.as_str())
+            .is_some_and(|set| set.contains(&id))
+        {
+            return Err(V1Error::FileNotFound.into());
+        }
         target_path = target_path.iter().skip(2).collect();
         source_path = std::path::Path::new(service)
             .iter()
