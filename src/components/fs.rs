@@ -51,11 +51,15 @@ impl From<V1DirItem> for FsItem {
 #[function_component]
 pub fn FsItems(prop: &FsItemProp) -> Html {
     let path_str = serde_json::to_string(
-        &std::path::Path::new(&prop.id.to_string())
-            .join(&prop.path)
-            .to_str()
-            .unwrap()
-            .trim_matches('/'),
+        &std::path::Path::new(&if let Some(prepend) = &prop.prepend {
+            prepend.clone()
+        } else {
+            prop.id.to_string()
+        })
+        .join(&prop.path)
+        .to_str()
+        .unwrap()
+        .trim_matches('/'),
     )
     .unwrap();
     html! {
