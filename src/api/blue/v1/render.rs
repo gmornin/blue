@@ -14,7 +14,7 @@ use goodmorning_services::{
 };
 use tokio::fs;
 
-use crate::structs::RenderTask;
+use crate::{structs::RenderTask, values::BLUE_CONFIG};
 
 #[post("/render")]
 pub async fn render(post: Json<V1Render>, jobs: web::Data<Jobs>) -> HttpResponse {
@@ -125,7 +125,7 @@ async fn render_task(
                 .map(|c| c.queue_limit)
                 .unwrap_or(*QUEUE_LIMIT.get().unwrap()),
             goodmorning_services::bindings::structs::ApiVer::V1,
-            Duration::from_secs(900),
+            Duration::from_secs(BLUE_CONFIG.get().unwrap().render_timeout),
         )
         .await
         .as_v1()?;

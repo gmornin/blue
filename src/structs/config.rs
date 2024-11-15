@@ -16,6 +16,8 @@ pub struct BlueConfig {
     pub allow_create: bool,
     #[serde(default = "topbar_urls_default")]
     pub topbar_urls: Vec<UrlItem>,
+    #[serde(default = "render_timeout_default")]
+    pub render_timeout: u64,
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub alternate_pfp: Option<String>,
@@ -49,6 +51,7 @@ impl Default for BlueConfig {
             topbar_urls: topbar_urls_default(),
             alternate_pfp: None,
             default_preset: default_preset_default(),
+            render_timeout: render_timeout_default(),
         }
     }
 }
@@ -90,4 +93,8 @@ fn topbar_urls_default() -> Vec<UrlItem> {
 
 fn default_preset_default() -> String {
     "overworld.conf".to_string()
+}
+
+fn render_timeout_default() -> u64 {
+    900
 }

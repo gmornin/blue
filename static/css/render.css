@@ -4,7 +4,7 @@
 
 #left span.path,
 #preset, #timer, #failed, #success {
-  display: inline;
+  display: inline-block;
   font-family: Consolas, Monaco, "Andale Mono", "Ubuntu Mono", monospace;
 }
 
@@ -44,6 +44,10 @@ button {
     padding: 3em;
   }
 
+  #left {
+      max-width: calc(100vw/3 - 6em);
+  }
+
   #tiles div:not(:last-child) {
     border-right: 1px solid #286688;
   }
@@ -61,4 +65,13 @@ button {
 
 .ghbutton:disabled.not-allowed:hover {
   cursor: not-allowed;
+}
+
+#left span {
+    white-space: nowrap !important;
+    overflow-x: scroll !important;
+}
+
+.path {
+    transform: translateY(3px);
 }

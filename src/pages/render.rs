@@ -108,7 +108,12 @@ async fn render_task(
         .unwrap()
         .iter()
         .fold(String::new(), |mut buf, current| {
-            write!(buf, r#"<option value="{current}">{current}</option>"#).unwrap();
+            write!(
+                buf,
+                r#"<option value="{current}" {}>{current}</option>"#,
+                if current == selected { "selected" } else { "" }
+            )
+            .unwrap();
             buf
         });
 
