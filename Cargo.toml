@@ -5,7 +5,7 @@ edition = "2021"
 
 [dependencies]
 # goodmorning-services = { path = "../services/", version = "*", features = [ "blue" ]}
-goodmorning-services = { git = "https://github.com/gmornin/services", rev = "c08bdd1", features = [ "blue" ] }
+goodmorning-services = { git = "https://github.com/gmornin/services", rev = "e453dda", features = [ "blue" ] }
 bluemap-singleserve = { git = "https://github.com/Siriusmart/bluemap-singleserve", rev = "e6e06b8" }
 # bluemap-singleserve = { path = "../bluemap-singleserve", version = "*" }
 actix-web = "4.9"
