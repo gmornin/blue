@@ -67,7 +67,7 @@ pub fn FsItems(prop: &FsItemProp) -> Html {
                     ItemVisibility::Hidden => "/static/icons/hidden.svg",
                     ItemVisibility::Private => "/static/icons/private.svg",
                 }} class={if item.visibility.inherited {"icon icon-inherit"} else {"icon"}}/>};
-            let path = if prop.path.is_empty() { format!("{}/{}", if let Some(prepend) = &prop.prepend { prepend.clone() } else {prop.id.to_string()}, item.name)} else {format!("{}/{}/{}", prop.id, prop.path, item.name)};
+            let path = if prop.path.is_empty() { format!("{}/{}", if let Some(prepend) = &prop.prepend { prepend.clone() } else {prop.id.to_string()}, item.name)} else { format!("{}/{}/{}", if let Some(prepend) = &prop.prepend { prepend.clone() } else {prop.id.to_string()}, prop.path, item.name)};
                 if item.is_file {
                 if item.name.starts_with('.') {
                       html! {<li class="hidden-file" path={path} isFile="true">{vis_icon}{&item.name}</li>}

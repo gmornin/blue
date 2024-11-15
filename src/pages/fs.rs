@@ -160,7 +160,7 @@ async fn fs_task(path: Path<String>, req: &HttpRequest) -> Result<HttpResponse, 
     }
 
     if Map::exists(&pathbuf).await {
-        return map(account, path, topbar).await;
+        return map(account, id, path, topbar).await;
     }
 
     if matches!(path.as_str(), "Shared" | "Shared/") {
@@ -182,6 +182,7 @@ async fn fs_task(path: Path<String>, req: &HttpRequest) -> Result<HttpResponse, 
 
 async fn map(
     account: Account,
+    id: i64,
     path: String,
     topbar: Cow<'_, str>,
 ) -> Result<HttpResponse, Box<dyn Error>> {
@@ -190,7 +191,7 @@ async fn map(
     let map_path = html_escape::encode_text(&map_path_dirty);
 
     let path_display = yew::ServerRenderer::<components::Path>::with_props(move || PathProp {
-        id: account.id,
+        id,
         path: path.trim_end_matches('/').to_string(),
     })
     .render()
@@ -305,16 +306,6 @@ async fn dir(
     let path_display = yew::ServerRenderer::<components::Path>::with_props(|| path_props)
         .render()
         .await;
-    let upload = if path.starts_with(".system")
-        || matches!(path.as_str(), "Shared" | "Shared/")
-        || matches!(
-            path.split('/').collect::<Vec<_>>().as_slice(),
-            ["Shared", _, ".system", ..]
-        ) {
-        r#"<img src="/static/icons/fileadd.svg" alt="" width="20px" height="20px" id="create" style="display: none;" /><img src="/static/icons/upload.svg" width="20px" height="20px" id="upload" style="display: none;" />"#
-    } else {
-        r#"<img src="/static/icons/fileadd.svg" width="20px" height="20px" id="create" /><img src="/static/icons/upload.svg" width="20px" height="20px" id="upload" />"#
-    };
     let pathbuf_safe = html_escape::encode_safe(pathbuf.to_str().unwrap());
 
     let html = format!(
@@ -369,12 +360,10 @@ async fn dir(
   {topbar}
 <div id="path-display">
   {path_display}
-  <!-- <div id="pathitems">{upload}</div> -->
 </div>
   {items_display}
   <script src="/static/scripts/fs.js" defer></script>
   <script src="/static/scripts/topbar.js" defer></script>
-  <!-- <script src="/static/scripts/upload.js" defer></script> -->
   </body>
 </html>"#,
         html_escape::encode_safe(&format!("{}/{path_original}", id))
